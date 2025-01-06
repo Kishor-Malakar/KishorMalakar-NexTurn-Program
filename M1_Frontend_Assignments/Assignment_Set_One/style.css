@@ -1,0 +1,10 @@
+body{
+    height: 100vh;
+    background-image: url(img/BG.jpg);
+    background-size: cover;
+    backdrop-filter: blur(7px)
+}
+.middle{
+    color: green;
+    text-align: center;
+}

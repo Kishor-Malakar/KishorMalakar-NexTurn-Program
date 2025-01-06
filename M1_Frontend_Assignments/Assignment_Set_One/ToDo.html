@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <link rel="stylesheet" href="Bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container-fluid">       
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">To-Do List</a>
+                    </li>
+                  
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container-md mt-5 col-6">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Add a new task..." maxlength="40" aria-label="Recipient's username"
+                aria-describedby="button-addon2">
+            <button class="btn btn-outline-success" id="addBtn" type="button" id="button-addon2">Add</button>
+        </div>
+        <ul id="main-list" class="list-group">
+            <li class="list-group-item d-flex justify-content-between"><h4 class="flex-grow-1">Complete the given assignments.</h4>
+                <button class="btn btn-primary mx-3" id="editBtn" type="button" onclick="editAssignment(this)">Edit</button>
+                <button class="btn btn-danger " id="delBtn" type="button" onclick="delAssignment(this)">Delete</button>
+            </li>
+
+        </ul>
+    </div>
+
+    <script src="Bootstrap/bootstrap.min.js"></script>
+    <script src="to-do.js"></script>
+</body>
+
+</html>
