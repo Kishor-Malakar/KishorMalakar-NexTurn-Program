@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+    environment {
+        WORKSPACE = "C:\\Users\\User\\Programming\\m6"
+        CLONE_DIR = "${WORKSPACE}\\flask-project-m7"
+        VENV_DIR = "${CLONE_DIR}\\venv"
+    }
+    stages {
+        stage('Setup and Run Flask Application') {
+            steps {
+                script {
+                    echo "Starting Flask application setup and execution..."
+
+                    // Clone the repository
+                    echo "Cloning the repository..."
+                    bat "cd ${WORKSPACE} && git clone ${REPO_URL}"
+
+                    // Navigate to the repository directory
+                    dir(CLONE_DIR) {
+                        // Create a virtual environment
+                        echo "Creating virtual environment..."
+                        bat "python -m venv venv"
+
+                        // Activate the virtual environment and install dependencies
+                        echo "Installing dependencies..."
+                        bat ".\\venv\\Scripts\\activate && pip install -r requirements.txt"
+
+                        // Run the application using waitress-serve
+                        echo "Starting the Flask application using waitress-serve..."
+                        bat ".\\venv\\Scripts\\activate && waitress-serve --listen=127.0.0.1:5000 app:app"
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Pipeline execution completed.'
+        }
+        success {
+            echo 'Flask application is running successfully!'
+        }
+        failure {
+            echo 'Pipeline execution failed. Please check the logs for details.'
+        }
+    }
+}
+
+

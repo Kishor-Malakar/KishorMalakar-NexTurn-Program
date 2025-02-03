@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+    environment {
+        WORKSPACE = "C:\\Users\\User\\Programming\\m6\\e4"
+        CLONE_DIR = "${WORKSPACE}\\vite-project"
+        DEPLOY_DIR = "${WORKSPACE}\\vite-project\\deployment-directory"
+    }
+    stages {
+        stage('Full Workflow: Clone, Build, Deploy') {
+            steps {
+                script {
+                    echo "Starting full workflow..."
+
+                    // Clone the repository
+                    echo "Cloning repository..."
+                    bat "cd ${WORKSPACE} && git clone ${REPO_URL}"
+
+                    // Change directory to the cloned repo and install dependencies
+                    echo "Installing dependencies..."
+                    dir(CLONE_DIR) {
+                        bat 'npm install'
+
+                        // Build the project
+                        echo "Building the project..."
+                        bat 'npm run build'
+
+                        // Deploy the application
+                        echo "Deploying the application by copying the build folder to the deployment directory..."
+                        bat "xcopy dist ${DEPLOY_DIR} /E /I /H /Y"
+                    }
+
+                    echo "Workflow completed successfully."
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'This will always run after the pipeline finishes.'
+        }
+        success {
+            echo 'The pipeline succeeded!'
+        }
+        failure {
+            echo 'The pipeline failed.'
+        }
+    }
+}
