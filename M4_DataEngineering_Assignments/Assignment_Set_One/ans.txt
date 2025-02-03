@@ -1,0 +1,278 @@
+
+use ecommerceDB;
+
+db.createCollection("users");
+db.createCollection("orders");
+db.createCollection("products");
+db.createCollection("warehouses");
+
+db.users.insertMany([
+  {
+    userId: "U001",
+    name: "Kishor Malakar",
+    email: "malakarkishor24@gmail.com",
+    age: 23,
+    address: {
+      city: "Aizawl",
+      state: "Mizoram",
+      zip: "796001"
+    },
+    createdAt: new ISODate("2024-12-29T10:00:00Z")
+  },
+  {
+    userId: "U002",
+    name: "Harold Kumar",
+    email: "kumar@gmail.com",
+    age: 30,
+    address: {
+      city: "Imphal"
+      state: "Manipur",
+      zip: "837363"
+    },
+    createdAt: new ISODate("2024-12-01T12:00:00Z")
+  },
+  {
+    userId: "U003",
+    name: "Uzunaki Naruto",
+    email: "naruto@gmail.com",
+    age: 19,
+    address: {
+      city: "Konoha",
+      state: "Leaf Village",
+      zip: "986734"
+    },
+    createdAt: new ISODate("2024-09-11T09:30:00Z")
+  }
+]);
+
+
+
+
+
+//Inserting data to the orders collection
+db.orders.insertMany([
+  {
+    orderId: "ORD001",
+    userId: "U001",
+    orderDate: new ISODate("2024-12-10T14:32:00Z"),
+    items: [
+      { productId: "P001", quantity: 2, price: 100 },
+      { productId: "P002", quantity: 1, price: 50 }
+    ],
+    totalAmount: 250,
+    status: "Delivered"
+  },
+  {
+    orderId: "ORD002",
+    userId: "U002",
+    orderDate: new ISODate("2024-12-05T16:20:00Z"),
+    items: [
+      { productId: "P001", quantity: 3, price: 150 },
+      { productId: "P003", quantity: 1, price: 200 }
+    ],
+    totalAmount: 350,
+    status: "Delivered"
+  },
+  {
+    orderId: "ORD003",
+    userId: "U003",
+    orderDate: new ISODate("2024-12-20T10:15:00Z"),
+    items: [
+      { productId: "P002", quantity: 4, price: 200 },
+      { productId: "P003", quantity: 2, price: 400 }
+    ],
+    totalAmount: 600,
+    status: "Shipped"
+  }
+]);
+
+
+//Inserting data to the products collection
+db.products.insertMany([
+  {
+    productId: "P001",
+    name: "Wireless Mouse",
+    category: "Electronics",
+    price: 50,
+    stock: 200,
+    ratings: [
+      { userId: "U002", rating: 4.5 },
+      { userId: "U003", rating: 3.0 }
+    ]
+  },
+  {
+    productId: "P002",
+    name: "Keyboard",
+    category: "Electronics",
+    price: 50,
+    stock: 150,
+    ratings: [
+      { userId: "U001", rating: 4.0 },
+      { userId: "U003", rating: 4.5 }
+    ]
+  },
+  {
+    productId: "P003",
+    name: "Monitor",
+    category: "Electronics",
+    price: 200,
+    stock: 100,
+    ratings: [
+      { userId: "U002", rating: 5.0 },
+      { userId: "U001", rating: 4.8 }
+    ]
+  }
+]);
+
+db.warehouses.createIndex({ location: "2dsphere" });
+
+
+
+Queries
+
+1. Find High-Spending Users
+
+db.users.aggregate([
+  {
+    $lookup: {
+      from: "orders",
+      localField: "userId",
+      foreignField: "userId",
+      as: "userOrders"
+    }
+  },
+  {
+    $unwind: "$userOrders"
+  },
+  {
+    $group: {
+      _id: "$userId",
+      name: { $first: "$name" },
+      totalSpent: { $sum: "$userOrders.totalAmount" }
+    }
+  },
+  {
+    $match: {
+      totalSpent: { $gt: 500 }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      userId: "$_id",
+      name: 1,
+      totalSpent: 1
+    }
+  }
+]);
+
+
+
+
+
+2. List Popular Products by Average Rating
+
+db.products.aggregate([
+  {
+    $unwind: "$ratings"
+  },
+  {
+    $group: {
+      _id: "$productId",
+      name: { $first: "$name" },
+      avgRating: { $avg: "$ratings.rating" }
+    }
+  },
+  {
+    $match: {
+      avgRating: { $gte: 4 }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      productId: "$_id",
+      name: 1,
+      avgRating: 1
+    }
+  }
+]);
+
+
+
+
+
+3. Search for Orders in a Specific Time Range
+
+db.orders.aggregate([
+  {
+    $match: {
+      orderDate: {
+        $gte: new ISODate("2024-12-01T00:00:00Z"),
+        $lte: new ISODate("2024-12-31T23:59:59Z")
+      }
+    }
+  },
+  {
+    $lookup: {
+      from: "users",
+      localField: "userId",
+      foreignField: "userId",
+      as: "userDetails"
+    }
+  },
+  {
+    $unwind: "$userDetails"
+  },
+  {
+    $project: {
+      _id: 0,
+      orderId: 1,
+      userName: "$userDetails.name",
+      orderDate: 1,
+      totalAmount: 1,
+      status: 1
+    }
+  }
+]);
+
+
+
+
+
+4. Update Stock After Order Completion
+
+db.orders.find({ orderId: "ORD001" }).forEach(order => {
+  order.items.forEach(item => {
+    db.products.updateOne(
+      { productId: item.productId },
+      { $inc: { stock: -item.quantity } }
+    );
+  });
+});
+
+
+
+
+
+5. Find Nearest Warehouse
+
+db.warehouses.aggregate([
+  {
+    $geoNear: {
+      near: { type: "Point", coordinates: [-74.006, 40.7128] },
+      distanceField: "distance",
+      maxDistance: 50000, // 50 kilometers in meters
+      spherical: true,
+      query: { products: "P001" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      warehouseId: 1,
+      distance: 1,
+      location: 1
+    }
+  }
+]);

@@ -1,0 +1,19 @@
+Q1. Write a query to list the names of employees hired after January 1, 2021. 
+
+select * from Employees where HireDate > '2001-01-01';
+
+Q2. Write a query to calculate the average salary of employees in each department.
+
+select d.DepartmentName, avg(e.Salary) from Employees as e inner join Departments as d on e.DepartmentID = d.DepartmentID group by d.DepartmentName;
+
+Q3. Write a query to find the department name where the total salary is the highest.
+
+select d.DepartmentName, sum(e.Salary) as totalSalary from Employees as e inner join Departments as d on e.DepartmentID = d.DepartmentID group by d.DepaartmentName order by totalSalary desc limit 1;
+
+Q4. Write a query to list all departments that currently have no employees assigned. 
+
+select d.DepartmentName from Departments as d left join Employees as e on d.DepartmentID = e.DepartmentID where e.DepartmentID is null;
+
+Q5. Write a query to fetch all employee details along with their department names.
+
+select e.*, d.DepartmentName from Employees as e inner join Departments as d on e.DepartmentID = d.DepartmentID;
